@@ -1,0 +1,97 @@
+import fbx
+
+
+class PyramidMarker:
+
+    def __init__(self, scene, name):
+        self.scene = scene
+        self.name = name
+
+    def create(self, base_width, height):
+        self.base_width = base_width
+        self.height = height
+
+        pyramid = fbx.FbxMesh.Create(self.scene, self.name)
+
+        # Calculate the vertices of the pyramid lying down
+        base_width_half = base_width / 2
+        controlpoints = [
+            fbx.FbxVector4(0, height, 0),
+            fbx.FbxVector4(base_width_half, 0, base_width_half),
+            fbx.FbxVector4(base_width_half, 0, -base_width_half),
+            fbx.FbxVector4(-base_width_half, 0, -base_width_half),
+            fbx.FbxVector4(-base_width_half, 0, base_width_half)
+        ]
+
+        # Initialize and set the control points of the mesh
+        controlpoint_count = len(controlpoints)
+        pyramid.InitControlPoints(controlpoint_count)
+        for i, p in enumerate(controlpoints):
+            pyramid.SetControlPointAt(p, i)
+
+        # Set the control point indices of the bottom plane of the pyramid
+        pyramid.BeginPolygon()
+        pyramid.AddPolygon(1)
+        pyramid.AddPolygon(4)
+        pyramid.AddPolygon(3)
+        pyramid.AddPolygon(2)
+        pyramid.EndPolygon()
+
+        # Set the control point indices of the front plane of the pyramid
+        pyramid.BeginPolygon()
+        pyramid.AddPolygon(0)
+        pyramid.AddPolygon(1)
+        pyramid.AddPolygon(2)
+        pyramid.EndPolygon()
+
+        # Set the control point indices of the left plane of the pyramid
+        pyramid.BeginPolygon()
+        pyramid.AddPolygon(0)
+        pyramid.AddPolygon(2)
+        pyramid.AddPolygon(3)
+        pyramid.EndPolygon()
+
+        # Set the control point indices of the back plane of the pyramid
+        pyramid.BeginPolygon()
+        pyramid.AddPolygon(0)
+        pyramid.AddPolygon(3)
+        pyramid.AddPolygon(4)
+        pyramid.EndPolygon()
+
+        # Set the control point indices of the right plane of the pyramid
+        pyramid.BeginPolygon()
+        pyramid.AddPolygon(0)
+        pyramid.AddPolygon(4)
+        pyramid.AddPolygon(1)
+        pyramid.EndPolygon()
+
+        # Attach the mesh to a node
+        pyramid_node = fbx.FbxNode.Create(self.scene, '')
+        pyramid_node.SetNodeAttribute(pyramid)
+
+        self.pyramid_node = pyramid_node
+
+        return pyramid_node
+
+    def set_local_translation(self, coordinate):
+        # TODO: Set the world coordinate to Z-up instead of Y-up
+        x = float(coordinate[0])
+        y = float(coordinate[1])
+        z = float(coordinate[2])
+        self.pyramid_node.LclTranslation.Set(fbx.FbxDouble3(x, z, y))
+
+    def attach_to_rootnode(self):
+        self.scene.GetRootNode().AddChild(self.pyramid_node)
+
+    def set_rotation_pivot(self, coordinate):
+        self.pyramid_node.SetRotationActive(True)
+        x = float(coordinate[0])
+        y = float(coordinate[1])
+        z = float(coordinate[2])
+        self.pyramid_node.SetRotationPivot(fbx.FbxNode.eSourcePivot, fbx.FbxVector4(x, y, z))
+
+    def set_post_rotation(self, coordinate):
+        x = float(coordinate[0])
+        y = float(coordinate[1])
+        z = float(coordinate[2])
+        self.pyramid_node.SetPostRotation(fbx.FbxNode.eSourcePivot, fbx.FbxVector4(x, y, z))

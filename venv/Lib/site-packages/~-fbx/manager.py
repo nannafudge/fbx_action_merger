@@ -1,0 +1,27 @@
+import fbx
+
+import pyfbx
+
+class Manager:
+    nodes = []
+
+    def __init__(self):
+        self._me = fbx.FbxManager.Create()
+
+    def create_scene(self, name=""):
+        self.scene = pyfbx.Scene(self, name)
+
+    def create_node(self, name=""):
+        node = pyfbx.Node(self, name)
+        self.nodes.append(node)
+
+    def get_nodes(self):
+        return self.nodes
+
+    def __del__(self):
+        """Free the manager's memory."""
+        for node in self.nodes:
+            del node
+
+        del self.nodes
+        self._me.Destroy()

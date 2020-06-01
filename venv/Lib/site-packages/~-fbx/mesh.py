@@ -1,0 +1,11 @@
+import fbx
+
+
+class Mesh:
+    def __init__(self, parent, name=""):
+        self.parent = parent
+        self.name = name
+        self._me = fbx.FbxMesh.Create(parent._me, name)
+
+    def add_to(self, node):
+        node.add_attribute(self)

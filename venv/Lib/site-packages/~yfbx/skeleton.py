@@ -1,0 +1,25 @@
+import pyfbx
+
+from fbx import *
+
+
+class Skeleton:
+    _me = None
+    parent = None
+    name = ""
+    manager = pyfbx.Manager
+    scene = pyfbx.Scene
+
+    def __init__(self, parent=pyfbx.Scene, manager=pyfbx.Manager, scene=pyfbx.Scene, name=""):
+        self.__init__(parent, manager, scene, FbxSkeleton.Create(parent._me, name))
+
+    def __init__(self, parent=pyfbx.Scene, manager=pyfbx.Manager, scene=pyfbx.Scene, skeleton=FbxSkeleton):
+        self.parent = parent
+        self.name = skeleton.GetName()
+        self.manager = manager
+        self.scene = scene
+        self._me = skeleton
+
+    def __del__(self):
+        """Free the manager's memory."""
+        self._me.Destroy()

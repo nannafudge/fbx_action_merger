@@ -1,0 +1,55 @@
+import fbx
+import os
+
+import FbxCommon
+import pyfbx
+
+import pyfbx
+
+
+class Scene:
+    _me = pyfbx.Manager
+    def __init__(self, manager=pyfbx.Manager, name=""):
+        self._me = fbx.FbxScene.Create(manager._me, name)
+        self.manager = manager
+        self.name = name
+
+        self.root_node = pyfbx.Node(self, name + "_root_node")
+        self.root_node._me = self._me.GetRootNode()
+
+    def create_node(self, name=""):
+        node = pyfbx.Node(self, name)
+
+    def __del__(self):
+        self._me.Destroy()
+
+
+def loadScene(manager, scene, path):
+    hasResult = FbxCommon.LoadScene(manager._me, scene._me, os.path.abspath(path))
+    if hasResult:
+        return Scene(manager, scene, os.path.abspath(path))
+
+    return None
+
+
+def createScene(scene_name="Untitled"):
+    manager = pyfbx.Manager()
+    scene = pyfbx.Scene(manager, scene_name)
+
+    lImporter = FbxImporter.Create(manager._me)
+    result = lImporter.Initialize(scene_name, -1, manager._me.GetIOSettings())
+    if not result:
+        return False
+
+    if lImporter.IsFBX():
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_MATERIAL, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_TEXTURE, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_EMBEDDED, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_SHAPE, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_GOBO, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_ANIMATION, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_GLOBAL_SETTINGS, True)
+
+    result = lImporter.Import(scene)
+    lImporter.Destroy()
+    return result

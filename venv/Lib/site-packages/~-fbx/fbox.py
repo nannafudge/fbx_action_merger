@@ -1,0 +1,99 @@
+import fbx
+import sys
+
+
+class FBox:
+    """Wrap fbx's common Python classes"""
+    manager = None
+    importer = None
+    exporter = None
+    scene = None
+    root_node = None
+    cpt_count = 0
+
+    def __init__(self):
+        """Create an atomic manager, exporter, scene and its root node."""
+        FBox.manager = fbx.FbxManager.Create()
+        if not FBox.manager:
+            sys.exit(0)
+
+        FBox.ios = fbx.FbxIOSettings.Create(FBox.manager, fbx.IOSROOT)
+        FBox.exporter = fbx.FbxExporter.Create(FBox.manager, '')
+        FBox.scene = fbx.FbxScene.Create(FBox.manager, '')
+        FBox.root_node = FBox.scene.GetRootNode()
+
+    def export(self, file_format='fbx'):
+        """Export the scene to an fbx file."""
+        save_path = "./marker." + file_format
+
+        if not FBox.manager.GetIOSettings():
+            FBox.ios = fbx.FbxIOSettings.Create(FBox.manager, fbx.IOSROOT)
+            FBox.manager.SetIOSettings(FBox.ios)
+
+        FBox.manager.GetIOSettings().SetBoolProp(fbx.EXP_FBX_MATERIAL, True)
+        FBox.manager.GetIOSettings().SetBoolProp(fbx.EXP_FBX_TEXTURE, True)
+        FBox.manager.GetIOSettings().SetBoolProp(fbx.EXP_FBX_EMBEDDED, True)
+        FBox.manager.GetIOSettings().SetBoolProp(fbx.EXP_FBX_SHAPE, True)
+        FBox.manager.GetIOSettings().SetBoolProp(fbx.EXP_FBX_GOBO, True)
+        FBox.manager.GetIOSettings().SetBoolProp(fbx.EXP_FBX_ANIMATION, True)
+        FBox.manager.GetIOSettings().SetBoolProp(fbx.EXP_FBX_GLOBAL_SETTINGS, True)
+
+        exportstat = FBox.exporter.Initialize(save_path, 1, FBox.manager.GetIOSettings())
+
+        if not exportstat:
+            try:
+                raise IOError("Problem exporting file!")
+            except IOError as e:
+                print("An exception flew by!")
+
+        exportstat = FBox.exporter.Export(FBox.scene)
+
+        FBox.exporter.Destroy()
+
+        return exportstat
+
+    def create_node(self, nickname=''):
+        """Create a free node and add to the root node."""
+        self.node = fbx.FbxNode.Create(FBox.manager, nickname)
+        FBox.root_node.AddChild(self.node)
+
+    def create_mesh(self, nickname=''):
+        """Create a free mesh"""
+        self.mesh = fbx.FbxMesh.Create(FBox.manager, nickname)
+
+    def create_mesh_controlpoint(self, x, y, z):
+        """Create a mesh controlpoint."""
+        self.mesh.SetControlPointAt(fbx.FbxVector4(x, y, z), FBox.cpt_count)
+        FBox.cpt_count += 1
+
+    def get_rnode_translation(self):
+        """Get the root node's translation."""
+        return FBox.root_node.LclTranslation.Get()
+
+    def get_node_translation(self):
+        """Get the child node's translation."""
+        return self.node.LclTranslation.Get()
+
+    def set_rnode_translation(self, coordinates):
+        """Set the root node translation."""
+        FBox.root_node.LclTranslation.Set(fbx.FbxDouble3(
+            float(coordinates[0]),
+            float(coordinates[1]),
+            float(coordinates[2])
+        ))
+
+    def set_node_translation(self, coordinates):
+        """Set the child node translation."""
+        self.node.LclTranslation.Set(fbx.FbxDouble3(
+            float(coordinates[0]),
+            float(coordinates[1]),
+            float(coordinates[2])
+        ))
+
+    def set_mesh_to_node(self):
+        """Set the mesh to the child node's attribute."""
+        self.node.AddNodeAttribute(self.mesh)
+
+    def __del__(self):
+        """Free the manager's memory."""
+        FBox.manager.Destroy()

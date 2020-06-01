@@ -1,0 +1,24 @@
+import fbx
+
+
+class Node:
+    def __init__(self, parent, name='', children=None):
+        self._me = fbx.FbxNode.Create(parent._me, name)
+        self.name = name
+        self.children = []
+        if children is not None:
+            for child in children:
+                self.add_child(child)
+
+    def add_child(self, node):
+        assert isinstance(node, Node)
+        self.children.append(node)
+
+    def add_attribute(self, attr):
+        self.attribute = attr
+        self.attribute._me = attr._me
+        return self._me.AddNodeAttribute(attr._me)
+
+    def __del__(self):
+        """Free the manager's memory."""
+        self._me.Destroy()

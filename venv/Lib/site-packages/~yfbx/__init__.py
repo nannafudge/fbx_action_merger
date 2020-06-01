@@ -1,0 +1,32 @@
+import pyfbx
+
+from fbx import FbxImporter
+from pyfbx.manager import Manager
+from pyfbx.scene import Scene
+
+
+def createScene(scene_name="Untitled"):
+    manager = Manager()
+    scene = Scene(manager, scene_name)
+
+    lImporter = FbxImporter.Create(manager._me)
+    result = lImporter.Initialize(scene_name, -1, manager._me.GetIOSettings())
+    if not result:
+        return False
+
+    if lImporter.IsFBX():
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_MATERIAL, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_TEXTURE, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_EMBEDDED, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_SHAPE, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_GOBO, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_ANIMATION, True)
+        manager._me.GetIOSettings().SetBoolProp(EXP_FBX_GLOBAL_SETTINGS, True)
+
+    result = lImporter.Import(scene)
+    lImporter.Destroy()
+    return result
+
+
+def loadScene(manager, scene, path):
+    return pyfbx.node.loadScene(manager, scene, os.path.abspath(path))
